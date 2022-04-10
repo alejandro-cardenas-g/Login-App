@@ -10,8 +10,8 @@ export const Login = () => {
   const {loginAction} = useAuth()
 
   const initialValues: ILoginForm = {
-    email: '',
-    password: ''
+    email: 'alejandro.cardenas.g07@gmail.com',
+    password: 'password'
   }
 
   const validationSchema = Yup.object({

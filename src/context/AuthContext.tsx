@@ -1,25 +1,26 @@
 import { createContext, useState } from 'react';
 import { JsxElement } from 'typescript';
-import {Loader} from 'semantic-ui-react';
 
 interface IAuth{
     auth: {
-        token?: string
+        token?: string;
     };
-    login: (token: string) => void;
+    login: (token: string, refresh: string) => void;
     logout: () => void;
     startLoading: () => void;
     finishLoading: () => void;
-    refreshAuth: (token: string) => void;
+    refreshAuth: (token?: string) => void;
+    loading: boolean;
 }
 
 export const AuthContext = createContext<IAuth>({
     auth: {},
-    login: (token: string):void => {},
+    login: (token: string, refresh: string):void => {},
     logout: () => {},
     startLoading: () => {},
     finishLoading: () => {},
-    refreshAuth: (token: string): void => {}
+    refreshAuth: (token?: string): void => {},
+    loading: false
 });
 
 
@@ -30,16 +31,18 @@ export const AuthProvider = ({children}:IAuthProvider) => {
 
     const [loading, setLoading] = useState(false);
 
-    const login = (token: string):void => {
+    const login = (token: string, refresh: string):void => {
 
         setLoading(true);
         localStorage.setItem('token', token);
+        localStorage.setItem('refresh', refresh);
         setAuth(prev => ({...prev, token}));
 
     }
 
     const logout = ():void => {
         setLoading(false);
+        localStorage.clear();
         setAuth({});
     }
 
@@ -51,13 +54,15 @@ export const AuthProvider = ({children}:IAuthProvider) => {
         setLoading(false);
     }
 
-    const refreshAuth = (token: string): void => {
-        setLoading(true);
-        localStorage.setItem('token', token);
-        setAuth(prev => ({...prev, token}));
+    const refreshAuth = (token?:string): void => {
+        if(token){
+            localStorage.setItem('token', token);
+            setAuth(prev => ({...prev, token}));
+        }else{
+            setAuth(prev => ({...prev, token: localStorage.getItem('token')}));
+        }
+        
     }
-
-    if(loading === true) return <Loader active size='large'/>;
 
     return (
         <AuthContext.Provider value={{
@@ -66,7 +71,8 @@ export const AuthProvider = ({children}:IAuthProvider) => {
             logout,
             startLoading,
             finishLoading,
-            refreshAuth
+            refreshAuth,
+            loading
         }}>
             {children}
         </AuthContext.Provider>
